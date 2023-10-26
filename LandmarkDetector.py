@@ -25,6 +25,8 @@ class LandmarkDetector(Detector):
 
         # 두 키포인트 사이의 거리를 계산합니다.
         dist = np.linalg.norm(np.array(p1) - np.array(p2))
+
+        # 거리를 계산한 후, expansion을 곱하여 확장된 사각형의 half_width를 계산합니다.
         half_width = dist * expansion / 2
 
         # 두 키포인트 사이의 거리를 기준으로 확장된 사각형의 좌상단, 우하단 좌표를 계산합니다.
