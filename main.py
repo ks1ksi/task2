@@ -9,7 +9,8 @@ from MusicPlayer import play_alarm_sound
 # use facial-landmarks-98-detection to detect facial landmarks (eyes)
 # use open-closed-eye to detect if eyes are open or closed
 
-THRESHOLD = 0.5
+OPEN_CLOSED_THRESHOLD = 0.5
+EYES_CLOSED_COUNTER_THRESHOLD = 5
 EYES_CLOSED_COUNTER = 0
 
 core = ov.Core()
@@ -48,7 +49,7 @@ while cap.isOpened():
     cv2.putText(frame, 'Press ESC to quit', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
 
     face_detect_result = face_detector.detect(frame)
-    valid_detections = [detection for detection in face_detect_result[0][0] if detection[2] > THRESHOLD]
+    valid_detections = [detection for detection in face_detect_result[0][0] if detection[2] > OPEN_CLOSED_THRESHOLD]
     frame_h, frame_w = frame.shape[:2]
     for detection in valid_detections:
         image_id, label, conf, x_min, y_min, x_max, y_max = detection
@@ -73,7 +74,7 @@ while cap.isOpened():
         left_eye_open_prob = left_eye_detect_result[0][1][0][0]
         right_eye_open_prob = right_eye_detect_result[0][1][0][0]
 
-        if left_eye_open_prob < THRESHOLD and right_eye_open_prob < THRESHOLD:
+        if left_eye_open_prob < OPEN_CLOSED_THRESHOLD and right_eye_open_prob < OPEN_CLOSED_THRESHOLD:
             cv2.putText(frame, 'Eyes Closed', (x_min, y_max + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9,
                         (255, 0, 0), 2)
             EYES_CLOSED_COUNTER += 1
@@ -82,7 +83,7 @@ while cap.isOpened():
                         (0, 255, 0), 2)
             EYES_CLOSED_COUNTER = 0
 
-        if EYES_CLOSED_COUNTER > 10:
+        if EYES_CLOSED_COUNTER > EYES_CLOSED_COUNTER_THRESHOLD:
             EYES_CLOSED_COUNTER = 0
             play_alarm_sound('beep.mp3')
 
