@@ -3,6 +3,7 @@ import openvino as ov
 
 from Detector import Detector
 from LandmarkDetector import LandmarkDetector
+from MusicPlayer import play_alarm_sound
 
 # use face-detection-adas-0001 to detect face
 # use facial-landmarks-98-detection to detect facial landmarks (eyes)
@@ -44,6 +45,8 @@ while cap.isOpened():
     if cv2.waitKey(1) & 0xFF == 27:
         break
 
+    cv2.putText(frame, 'Press ESC to quit', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+
     face_detect_result = face_detector.detect(frame)
     valid_detections = [detection for detection in face_detect_result[0][0] if detection[2] > THRESHOLD]
     frame_h, frame_w = frame.shape[:2]
@@ -55,30 +58,20 @@ while cap.isOpened():
         x_max = int(x_max * frame_w)
         y_max = int(y_max * frame_h)
 
-        cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (0, 255, 0),
-                      2)  # BGR color for the box and thickness=2
+        cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
 
         # crop face
         face = frame[y_min:y_max, x_min:x_max]
 
         # detect facial landmarks
         landmark_detect_result = landmark_detector.detect(face)
-
         left_eye, right_eye = landmark_detector.extract_eyes_from_output(face, landmark_detect_result)
-
-        # cv2.imshow('left_eye', left_eye)
-        # cv2.imshow('right_eye', right_eye)
-        # cv2.moveWindow('left_eye', 700, 0)
-        # cv2.moveWindow('right_eye', 1000, 0)
 
         left_eye_detect_result = open_closed_eye_detector.detect(left_eye)
         right_eye_detect_result = open_closed_eye_detector.detect(right_eye)
 
         left_eye_open_prob = left_eye_detect_result[0][1][0][0]
         right_eye_open_prob = right_eye_detect_result[0][1][0][0]
-
-        print(f"left_eye_open_prob: {left_eye_open_prob}")
-        print(f"right_eye_open_prob: {right_eye_open_prob}")
 
         if left_eye_open_prob < THRESHOLD and right_eye_open_prob < THRESHOLD:
             cv2.putText(frame, 'Eyes Closed', (x_min, y_max + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9,
@@ -90,9 +83,8 @@ while cap.isOpened():
             EYES_CLOSED_COUNTER = 0
 
         if EYES_CLOSED_COUNTER > 10:
-            cv2.putText(frame, 'Drowsiness Detected', (x_min, y_min + 10), cv2.FONT_HERSHEY_SIMPLEX, 2.0,
-                        (0, 0, 255), 3)
             EYES_CLOSED_COUNTER = 0
+            play_alarm_sound('beep.mp3')
 
         cv2.imshow('frame', frame)
 
