@@ -76,6 +76,12 @@ while cap.isOpened():
     valid_detections = [detection for detection in face_detect_result[0][0] if detection[2] > FACE_DETECTION_THRESHOLD]
     # frame shape: height, width, channels. get height and width
     frame_h, frame_w = frame.shape[:2]
+
+    if len(valid_detections) == 0:
+        cv2.putText(frame, 'No Face Detected', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+        cv2.imshow('frame', frame)
+        continue
+
     for detection in valid_detections:
         image_id, label, conf, x_min, y_min, x_max, y_max = detection
 
