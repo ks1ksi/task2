@@ -10,6 +10,7 @@ from MusicPlayer import play_alarm_sound
 # use open-closed-eye to detect if eyes are open or closed
 
 OPEN_CLOSED_THRESHOLD = 0.5
+FACE_DETECTION_THRESHOLD = 0.5
 EYES_CLOSED_COUNTER_THRESHOLD = 5
 EYES_CLOSED_COUNTER = 0
 
@@ -49,7 +50,31 @@ while cap.isOpened():
     cv2.putText(frame, 'Press ESC to quit', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
 
     face_detect_result = face_detector.detect(frame)
-    valid_detections = [detection for detection in face_detect_result[0][0] if detection[2] > OPEN_CLOSED_THRESHOLD]
+
+    '''
+    Inputs
+    Image, name: data, shape: 1, 3, 384, 672 in the format B, C, H, W, where:
+    
+    B - batch size
+    C - number of channels
+    H - image height
+    W - image width
+    Expected color order is BGR.
+    
+    Outputs The net outputs blob with shape: 1, 1, 200, 7 in the format 1, 1, N, 7, where N is the number of detected 
+    bounding boxes. The results are sorted by confidence in decreasing order. Each detection has the format 
+    [image_id, label, conf, x_min, y_min, x_max, y_max], where:
+    
+    image_id - ID of the image in the batch
+    label - predicted class ID (1 - face)
+    conf - confidence for the predicted class
+    (x_min, y_min) - coordinates of the top left bounding box corner
+    (x_max, y_max) - coordinates of the bottom right bounding box corner
+    '''
+
+    # filter out face detection results with confidence(detection[2]) < 0.5
+    valid_detections = [detection for detection in face_detect_result[0][0] if detection[2] > FACE_DETECTION_THRESHOLD]
+    # frame shape: height, width, channels. get height and width
     frame_h, frame_w = frame.shape[:2]
     for detection in valid_detections:
         image_id, label, conf, x_min, y_min, x_max, y_max = detection
