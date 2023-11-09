@@ -13,7 +13,9 @@ class Detector:
 
     def detect(self, frame):
         frame = cv2.resize(frame, (self.W, self.H))
+        # height, width, channel -> channel, height, width
         frame = frame.transpose((2, 0, 1))
+        # channel, height, width -> batch, channel, height, width
         frame = frame.reshape((self.N, self.C, self.H, self.W)).astype('float32')
 
         return self.model(frame)[self.output_layer_ir]
